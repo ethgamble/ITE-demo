@@ -1,0 +1,8 @@
+export const user = 'user'
+export const dapp = 'dapp'
+export const bihuInfo = 'bihuInfo'
+export const account = 'account'
+export const isLogin = 'isLogin'
+export const hasAccount = 'hasAccount'
+export const hasWallet = 'hasWallet'
+export const hasSign = 'hasSign'
