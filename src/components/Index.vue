@@ -17,6 +17,7 @@
 						<button class="btn btn-primary" @click.prevent="get_gameinfo" type="button"> 游戏数据 </button>
 						<button class="btn btn-primary" @click.prevent="get_userinfo" type="button"> 玩家数据 </button>
 						<button class="btn btn-primary" @click.prevent="get_bonus" type="button"> 奖励数据 </button>
+						<button class="btn btn-primary" @click.prevent="getCurrencyBalance" type="button"> 账户余额 </button>
 					</div>
 				</div>
 			</div>
@@ -41,6 +42,13 @@
 					<el-col :span="12">
 						<div class="grid-content bg-purple">current game palyer info </div>
 						<div class="grid-content bg-purple">{{ userinfo[global.gameid]}}</div>
+					</el-col>
+				</el-row>
+				<br>
+				<el-row>
+					<el-col :span="12">
+						<div class="grid-content bg-purple">player balance </div>
+						<div class="grid-content bg-purple">{{ balance}}</div>
 					</el-col>
 				</el-row>
 			</div>
@@ -96,7 +104,7 @@
 						"total_reserved": 0,  // 当前已经激活智子
 						"quote_balance": "1010689.1369 EOS",  // 当前合约总保证金
 						"init_quote_balance": "1000000.0000 EOS", // 初始保证金
-						"hero": "" , // 游戏结束后，触发结局的英雄
+						"hero": "", // 游戏结束后，触发结局的英雄
 						"claim_price": ""  // 游戏结束后，claim的单价。（每个智子单价）
 					}
 				],
@@ -116,7 +124,13 @@
 						"owner": "user1", // 玩家账号
 						"reward": "0.0010 EOS" // 获得的奖励
 					}
-				]
+				],
+
+				// 账户余额
+				balance: {
+					eos: "0 EOS",
+					ite: "0 ITE",
+				}
 			}
 		},
 
@@ -307,6 +321,37 @@
 					console.error(e);
 				})
 			},
+
+			getCurrencyBalance() {
+				// hard code
+				var account = "user1";
+
+				// 获取EOS
+				this.eosClient.getCurrencyBalance({
+					code: config.tokenContract,
+					account: account,
+					symbol: config.mainToken
+				}).then(res => {
+					console.log(res);
+					this.balance.eos = res[0];
+				}, res => {
+					console.log(res);
+				})
+
+				// 如果是ITE盘, 需要另外再获取ITE余额
+				if (config.tokenName == "ITE") {
+					this.eosClient.getCurrencyBalance({
+						code: config.tokenContract,
+						account: account,
+						symbol: config.tokenName
+					}).then(res => {
+						console.log(res);
+						this.balance.ite = res[0];
+					}, res => {
+						console.log(res);
+					})
+				}
+			}
 		}
 	}
 
