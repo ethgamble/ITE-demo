@@ -1,10 +1,12 @@
 export default {
     appName: "EOS Dapp Demo",
-    tokenName: "EOS",
+    // tokenName: "EOS",
+    tokenName: "ITE",
+    tokenContract: "eosio.token",
+    gameContract: "makeitbomb11",
+    
     version: "1.1",
     env: 'dev',
-    contractName: "makeitbomb11",
-
     // local testnet
     // eosNetwork: {
     //     blockchain: 'eos',

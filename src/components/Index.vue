@@ -25,9 +25,7 @@
 				<el-row>
 					<el-col :span="12">
 						<div class="grid-content bg-purple">global</div>
-						<div class="grid-content bg-purple">gameid: {{global.gameid}}</div>
-						<div class="grid-content bg-purple">good_ending_ratio: {{global.good_ending_ratio}}</div>
-						<div class="grid-content bg-purple">bad_ending_ratio: {{global.bad_ending_ratio}}</div>
+						<div class="grid-content bg-purple">{{global}}</div>
 					</el-col>
 					<el-col :span="12">
 						<div class="grid-content bg-purple">current gameinfo</div>
@@ -75,24 +73,31 @@
 				// 全局数据
 				global: {
 					gameid: null,
-					// 销毁智力总数 占 总智子数的比例。达到这个比例 游戏结束
-					good_ending_ratio: null,
-					// 已激活智力总数 占 当前有效智子数（不含已销毁）的比例。达到这个比例 游戏结束
-					bad_ending_ratio: null,
+					// 空投奖励的计数器间隔
+					air_drop_step: 0,
+					// 最终大奖瓜分奖池的比例 . ？% = 100 / end_prize_ratio
+					end_prize_ratio: 0,
+					// 最终大奖收益倍数
+					end_prize_times: 0,
+					// 销毁智力总数 占 总智子数的比例。达到这个比例 游戏结束。 合约内部数据类型原因，比例用除法表示 10表示销毁百分之十 游戏结束。
+					good_ending_ratio: 10,
+					// 已激活智力总数 占 当前有效智子数（不含已销毁）的比例。达到这个比例 游戏结束。 合约内部数据类型原因，比例用除法表示 。 10表示激活百分之十 游戏结束。
+					bad_ending_ratio: 10,
 				},
 				// 游戏数据
 				gameinfo: [
 					{
 						"gameid": 0,		// 游戏id，唯一，每局一个
 						"status": 0,		// 状态，0 是进行中， 1 是已结束
-						"counter": 15,      // 操作计数器。阶段奖励的依据
+						"counter": 0,      // 操作计数器。阶段奖励的依据
 						"init_max": "68718748890", // 智子初始总数
-						"total_burn": 727846,   // 总销毁智子数量
+						"total_burn": 0,   // 总销毁智子数量
 						"total_alive": "68718748890", // 总可用智子数量
-						"total_reserved": 726783914,  // 当前已经激活智子
+						"total_reserved": 0,  // 当前已经激活智子
 						"quote_balance": "1010689.1369 EOS",  // 当前合约总保证金
 						"init_quote_balance": "1000000.0000 EOS", // 初始保证金
-						"hero": ""  // 游戏结束后，触发结局的英雄
+						"hero": "" , // 游戏结束后，触发结局的英雄
+						"claim_price": ""  // 游戏结束后，claim的单价。（每个智子单价）
 					}
 				],
 				// 玩家信息
@@ -158,13 +163,13 @@
 				}
 				// hard code
 				var from = "user1";
-				var to = config.contractName;
-				var amount = "100.0000 EOS"; // ps amount 参数有个很大的坑，它是 数字 + 代币符号拼接而成。数字记得要保留4为小数。
+				var to = config.gameContract;
+				var amount = "100.0000 " + config.tokenName; // ps amount 参数有个很大的坑，它是 数字 + 代币符号拼接而成。数字记得要保留4为小数。
 				var memo = "buy ram";
 
 				var arg = [from, to, amount, memo]
 
-				this.scatterEosClient.contract("eosio.token", { requiredFields }).then(contract => {
+				this.scatterEosClient.contract(config.tokenContract, { requiredFields }).then(contract => {
 					contract.transfer(...arg).then(tx => {
 						console.log(tx)
 					}).catch(e => {
@@ -191,8 +196,7 @@
 				var sell_amount = 11;  //ps 数字类型。不能是字符串
 				var arg = [seller, account, sell_amount];
 
-				this.scatterEosClient.contract(config.contractName, { requiredFields }).then(contract => {
-					console.log(contract)
+				this.scatterEosClient.contract(config.gameContract, { requiredFields }).then(contract => {
 					contract.sell(seller, sell_amount, options).then(tx => {
 						console.log(tx)
 					}).catch(e => {
@@ -220,7 +224,7 @@
 				var sell_amount = 11;  //ps 数字类型。不能是字符串
 				var arg = [seller, account, sell_amount];
 
-				this.scatterEosClient.contract(config.contractName, { requiredFields }).then(contract => {
+				this.scatterEosClient.contract(config.gameContract, { requiredFields }).then(contract => {
 					console.log(contract)
 					contract.destroy(seller, sell_amount, options).then(tx => {
 						console.log(tx)
@@ -235,8 +239,8 @@
 			get_global() {
 				this.eosClient.getTableRows({
 					json: "true",
-					code: config.contractName,
-					scope: config.contractName,
+					code: config.gameContract,
+					scope: config.gameContract,
 					table: 'global',
 					limit: 10,
 					lower_bound: 0
@@ -253,8 +257,8 @@
 			get_gameinfo() {
 				this.eosClient.getTableRows({
 					json: "true",
-					code: config.contractName,
-					scope: config.contractName,
+					code: config.gameContract,
+					scope: config.gameContract,
 					table: 'game',
 					limit: 10,
 					lower_bound: 0
@@ -272,7 +276,7 @@
 
 				this.eosClient.getTableRows({
 					json: "true",
-					code: config.contractName,
+					code: config.gameContract,
 					scope: account,
 					table: 'userinfo',
 					limit: 10,
@@ -291,7 +295,7 @@
 
 				this.eosClient.getTableRows({
 					json: "true",
-					code: config.contractName,
+					code: config.gameContract,
 					scope: gameid,
 					table: 'bonus',
 					limit: 10,
