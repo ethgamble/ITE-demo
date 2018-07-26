@@ -11,6 +11,7 @@
 						<button class="btn btn-primary" @click.prevent="buy" type="button"> 买 </button>
 						<button class="btn btn-primary" @click.prevent="sell" type="button"> 卖 </button>
 						<button class="btn btn-primary" @click.prevent="destroy" type="button"> 销毁 </button>
+						<button class="btn btn-primary" @click.prevent="claim" type="button"> 领取奖励(游戏结束才能领取) </button>
 						<br>
 						<br>
 						<button class="btn btn-primary" @click.prevent="get_global" type="button"> 全局数据 </button>
@@ -113,7 +114,8 @@
 					{
 						"gameid": 0,			// 游戏id，唯一，每局一个
 						"owner": "user1",		// 玩家账号
-						"ram_bytes": 726783914	// 拥有的智子
+						"hodl": 726783914,	   // 拥有的智子 hodl: 币圈搞怪名词，持有之意
+						"claim_status": 0,	   // 当局奖励 是否已领取
 					}
 				],
 				// 阶段奖励记录
@@ -178,8 +180,12 @@
 				// hard code
 				var from = "user1";
 				var to = config.gameContract;
-				var amount = "100.0000 " + config.tokenName; // ps amount 参数有个很大的坑，它是 数字 + 代币符号拼接而成。数字记得要保留4为小数。
-				var memo = "buy ram";
+				var amount = "40000.0000 " + config.tokenName; // ps amount 参数有个很大的坑，它是 数字 + 代币符号拼接而成。数字记得要保留4为小数。
+				var memo = "activate";
+
+				// wit
+				// Ash Katchum; astute
+				// Sa To Ko
 
 				var arg = [from, to, amount, memo]
 
@@ -283,7 +289,7 @@
 					console.error(e);
 				})
 			},
-			// 玩家数据, account需要取当前用户。获得玩家数据。每一局的数据都有。再根据gameid关联数据。 ram_bytes 字段，就是持有的智子数量，后续改字段名。
+			// 玩家数据, account需要取当前用户。获得玩家数据。每一局的数据都有。再根据gameid关联数据。
 			get_userinfo() {
 				// hard code
 				var account = "user1";
@@ -351,6 +357,33 @@
 						console.log(res);
 					})
 				}
+			},
+
+			claim() {
+				const account = this.scatter.identity.accounts.find(account => account.blockchain === 'eos');
+
+				const options = {
+					authorization: [
+						`${account.name}@${account.authority}`
+					]
+				};
+
+				const requiredFields = {
+					accounts: [config.eosNetwork]
+				}
+				// hard code
+				var user = "user1";
+				var claim_gameid = 0;  //领取第几局奖励
+
+				this.scatterEosClient.contract(config.gameContract, { requiredFields }).then(contract => {
+					contract.claim(user, claim_gameid, options).then(tx => {
+						console.log(tx)
+					}).catch(e => {
+						console.log(e)
+					})
+				}).catch(e => {
+					console.log(e)
+				});
 			}
 		}
 	}
