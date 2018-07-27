@@ -38,7 +38,7 @@
 				<el-row>
 					<el-col :span="12">
 						<div class="grid-content bg-purple">current game bonus</div>
-						<div class="grid-content bg-purple">{{ bonus[global.gameid]}}</div>
+						<div class="grid-content bg-purple">{{ bonus }}</div>
 					</el-col>
 					<el-col :span="12">
 						<div class="grid-content bg-purple">current game palyer info </div>
@@ -55,7 +55,6 @@
 			</div>
 		</div>
 	</div>
-
 </template>
 
 <script>
