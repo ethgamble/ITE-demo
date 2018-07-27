@@ -19,6 +19,7 @@
 						<button class="btn btn-primary" @click.prevent="get_userinfo" type="button"> 玩家数据 </button>
 						<button class="btn btn-primary" @click.prevent="get_bonus" type="button"> 奖励数据 </button>
 						<button class="btn btn-primary" @click.prevent="getCurrencyBalance" type="button"> 账户余额 </button>
+						<button class="btn btn-primary" @click.prevent="getActions" type="button"> 操作记录 </button>
 					</div>
 				</div>
 			</div>
@@ -50,6 +51,10 @@
 					<el-col :span="12">
 						<div class="grid-content bg-purple">player balance </div>
 						<div class="grid-content bg-purple">{{ balance}}</div>
+					</el-col>
+					<el-col :span="12">
+						<div class="grid-content bg-purple">actions </div>
+						<div class="grid-content bg-purple">{{ actions }}</div>
 					</el-col>
 				</el-row>
 			</div>
@@ -124,7 +129,8 @@
 				// 阶段奖励记录
 				bonus: [
 					{
-						"count": 11110,    // 第几次操作触发的。目前测试数据，设定没10次奖励一个。所以第十个获得一个奖励
+						"count": 11110,    // 
+
 						"gameid": 0,		// 游戏id，
 						"owner": "user1", // 玩家账号
 						"reward": "0.0010 EOS" // 获得的奖励
@@ -135,6 +141,11 @@
 				balance: {
 					eos: "0 EOS",
 					ite: "0 ITE",
+				},
+
+				// 操作记录
+				actions: {
+
 				}
 			}
 		},
@@ -360,6 +371,41 @@
 						console.log(res);
 					})
 				}
+			},
+
+			getActions() {
+				// hard code， 单个用户的操作记录
+				var account = "user1";
+				// 如果是全部人的操作记录, account = config.gameContract
+				// var account = config.gameContract;
+				// 获取EOS
+				this.eosClient.getActions({
+					account_name: account,
+					pos: -1,     // INT sequence number of action for this account, -1 for last . default -1
+					offset: -100  // INT get actions [pos,pos+offset] for positive offset or [pos-offset,pos) for negative offset
+				}).then(res => {
+					this.actions = res.actions.map(x => {
+						return x.action_trace.act;
+					}).filter(y => {
+						console.log(y);
+						// buy record
+						if (y.account == config.tokenContract && y.name == "transfer" && y.data.to == config.gameContract) {
+							return true;
+						}
+						// sell record 
+						if (y.account == config.gameContract && y.name == "sell" ) {
+							return true;
+						}
+						// destroy record 
+						if (y.account == config.gameContract && y.name == "destroy" ) {
+							return true;
+						}
+						return false;
+					});
+
+				}, res => {
+					console.log(res);
+				})
 			},
 
 			claim() {
