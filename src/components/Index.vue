@@ -106,9 +106,13 @@
 						"quote_balance": "1010689.1369 EOS",  // 当前合约总保证金
 						"init_quote_balance": "1000000.0000 EOS", // 初始保证金
 						"hero": "", // 游戏结束后，触发结局的英雄
-						"claim_price": ""  // 游戏结束后，claim的单价。（每个智子单价）
+						"claim_price": "",  // 游戏结束后，claim的单价。（每个智子单价）
+						"start_time": "",  // 游戏开始时间
+						"end_time": "",  // 游戏结束时间
+						"hero_reward": "",  // 游戏结束后，触发结局的英雄拿到的奖励
 					}
 				],
+
 				// 玩家信息
 				userinfo: [
 					{
@@ -330,7 +334,7 @@
 
 			getCurrencyBalance() {
 				// hard code
-				var account = "user1";
+				var account = "testuser2";
 
 				// 获取EOS
 				this.eosClient.getCurrencyBalance({
