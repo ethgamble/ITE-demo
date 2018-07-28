@@ -20,6 +20,7 @@
 						<button class="btn btn-primary" @click.prevent="get_bonus" type="button"> 奖励数据 </button>
 						<button class="btn btn-primary" @click.prevent="getCurrencyBalance" type="button"> 账户余额 </button>
 						<button class="btn btn-primary" @click.prevent="getActions" type="button"> 操作记录 </button>
+						<button class="btn btn-primary" @click.prevent="findByGameidDemo" type="button"> findByGameidDemo </button>
 					</div>
 				</div>
 			</div>
@@ -64,6 +65,7 @@
 
 <script>
 	import promo from "../assets/faith.jpg"
+	import _ from "lodash"
 	import config from '../config/config.js'
 	import moment from 'moment'
 	import querystring from 'querystring';
@@ -393,16 +395,15 @@
 							return true;
 						}
 						// sell record 
-						if (y.account == config.gameContract && y.name == "sell" ) {
+						if (y.account == config.gameContract && y.name == "sell") {
 							return true;
 						}
 						// destroy record 
-						if (y.account == config.gameContract && y.name == "destroy" ) {
+						if (y.account == config.gameContract && y.name == "destroy") {
 							return true;
 						}
 						return false;
 					});
-
 				}, res => {
 					console.log(res);
 				})
@@ -433,6 +434,16 @@
 				}).catch(e => {
 					console.log(e)
 				});
+			},
+
+			// 演示如何根据gameid 获取一个数组中的 某一个符合条件的对象。
+			findByGameidDemo() {
+				var games = this.gameinfo;
+				var gameid = this.global.gameid;
+
+				var currentGame = _.find(games, _.matches({ gameid: gameid }));
+
+				console.log("currentGame", currentGame);
 			}
 		}
 	}
